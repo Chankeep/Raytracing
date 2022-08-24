@@ -71,13 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>D:\Tools\opencv\build\opencv\build\x64\vc15\bin;$(LibraryPath)</LibraryPath>
+    <LibraryPath>D:\CODE\RToneWeek\RToneWeek\RToneWeek;D:\Tools\opencv\build\opencv\build\x64\vc15\bin;$(LibraryPath)</LibraryPath>
     <IncludePath>D:\Tools\opencv\build\opencv\build\include\opencv2;D:\Tools\opencv\build\opencv\build\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>D:\Tools\opencv\build\opencv\build\include;D:\Tools\opencv\build\opencv\build\include\opencv2;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\Tools\opencv\build\opencv\build\x64\vc15\bin;$(LibraryPath)</LibraryPath>
+    <LibraryPath>D:\CODE\RToneWeek\RToneWeek\RToneWeek;D:\Tools\opencv\build\opencv\build\x64\vc15\bin;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -118,6 +117,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>D:\Tools\opencv\build\opencv\build\x64\vc15\lib\opencv_world460d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -135,14 +135,17 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>D:\Tools\opencv\build\opencv\build\x64\vc15\lib\opencv_world460.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LinkStatus>true</LinkStatus>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="geometry.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ray.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="geometry.h" />
+    <ClInclude Include="ray.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
