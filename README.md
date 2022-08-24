@@ -3,3 +3,6 @@
 一个简单的软光线追踪器
 # first week
 create by chankkep on 2022/8/23
+更新了vec3 class
+update by chankkep on 2022/8/24
+更新了ray class
