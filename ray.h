@@ -1,15 +1,19 @@
 #pragma once
 #include "geometry.h"
 
-class ray
-{
+class ray {
 public:
-	ray();
-	ray(const vec3& ori, const vec3& dir) : origin(ori), direction(dir){}
-	vec3 get_origin() const;
-	vec3 get_dir() const;
-	vec3 at(double T) const;
-	vec3 origin;
-	vec3 direction;
+	ray() = default;
+	ray(const point3& origin, const vec3& direction) :orig(origin), dir(direction) { }
+
+	point3 get_origin() const { return orig; }
+	vec3 get_dir() const { return dir; }
+
+	point3 at(double t) const {
+		return orig + t * dir;
+	}
+public:
+	point3 orig;
+	vec3 dir;
 };
 

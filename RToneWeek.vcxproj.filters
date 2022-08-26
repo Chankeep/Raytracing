@@ -29,6 +29,9 @@
     <ClInclude Include="ray.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="hittable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">
