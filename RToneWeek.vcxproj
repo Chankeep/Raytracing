@@ -146,7 +146,9 @@
   <ItemGroup>
     <ClInclude Include="geometry.h" />
     <ClInclude Include="hittable.h" />
+    <ClInclude Include="hittable_list.h" />
     <ClInclude Include="ray.h" />
+    <ClInclude Include="Sphere.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

@@ -2,7 +2,19 @@
 
 #include<cmath>
 #include<iostream>
+#include<limits>
+
 using std::sqrt;
+using std::shared_ptr;
+using std::make_shared;
+
+constexpr double PI = 3.141592657;
+constexpr double Infinity = std::numeric_limits<double>::infinity();
+
+inline double degree2radian(const double degree)
+{
+	return degree * PI / 180.0;
+}
 
 class vec3 {
 public:
