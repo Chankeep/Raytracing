@@ -3,18 +3,10 @@
 #include<cmath>
 #include<iostream>
 #include<limits>
-
+#include<random>
 using std::sqrt;
 using std::shared_ptr;
 using std::make_shared;
-
-constexpr double PI = 3.141592657;
-constexpr double Infinity = std::numeric_limits<double>::infinity();
-
-inline double degree2radian(const double degree)
-{
-	return degree * PI / 180.0;
-}
 
 class vec3 {
 public:
@@ -101,4 +93,48 @@ inline vec3 cross(const vec3& u, const vec3& v) {
 }
 inline vec3 normalize(const vec3& v) {
 	return v / v.length();
+}
+
+constexpr double PI = 3.141592657;
+constexpr double Infinity = std::numeric_limits<double>::infinity();
+
+inline double degree2radian(const double degree)
+{
+	return degree * PI / 180.0;
+}
+
+inline double random_double()
+{
+	return rand() / (RAND_MAX + 1.0);
+}
+inline double random_double(double min, double max)
+{
+	return min + (max - min) * random_double();
+}
+static vec3 random()
+{
+	return {random_double(), random_double(), random_double()};
+}
+
+static vec3 random(double min, double max)
+{
+	return {random_double(min, max), random_double(min, max), random_double(min, max)};
+}
+
+inline vec3 random_in_unit_sphere()
+{
+	while(true)
+	{
+		vec3 p = random(-1, 1);
+		if (p.length_squared() >= 1)
+			continue;
+		return p;
+	}
+}
+
+inline double clamp(double max, double min, double x)
+{
+	if (x < min) x = min;
+	if (x > max) x = max;
+	return x;
 }

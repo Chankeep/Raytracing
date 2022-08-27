@@ -1,29 +1,27 @@
 #include <opencv2/opencv.hpp>
 // #include <iostream>
+#include "camera.h"
 #include "geometry.h"
 #include "hittable_list.h"
 #include "ray.h"
 #include "Sphere.h"
 
 using namespace cv;
-vec3 light_dir = normalize(vec3(1, 1, 1));
+vec3 light_dir = normalize(vec3(-1, 1, 1));
 constexpr double aspect_ratio = 16.0 / 9.0;
-constexpr int width = 600;
+constexpr int width = 1440;
 constexpr int height = static_cast<int>(width / aspect_ratio);
+constexpr int samples_perpixel = 100;
+constexpr int max_depth = 50;
 
-vec3 ray_color(const ray& r, hittable_list world)
+vec3 ray_color(const ray& r, hittable_list world, int depth)
 {
 	hit_record rec;
+	if (depth <= 0)return color(0, 0, 0);
 	if(world.hit(r, rec, Infinity, 0))
 	{
-		color N = (rec.normal + 1) * 0.5;
-		// std::cout << N.length()<< std::endl;
-		// N = normalize(N);
-
-		// std::cout << N.length() << std::endl;
-		double NdotL = std::max(0.0,dot(N, light_dir));
-		color c = vec3(NdotL,NdotL,NdotL);
-		return N;
+		point3 target = rec.pos + rec.normal + random_in_unit_sphere();
+		return 0.5 * ray_color(ray(rec.pos, target - rec.pos), world, --depth);
 	}
 	const vec3 unit_dir = normalize(r.get_dir());
 	double t = 0.5 * (unit_dir.y() + 1.0);
@@ -32,13 +30,22 @@ vec3 ray_color(const ray& r, hittable_list world)
 
 int main()
 {
-	// image
-
-	vec3 LowerLeftCorner(-2.0, -1.0, -1.0);
-	vec3 Horizontal(4.0, 0.0, 0.0);
-	vec3 Vertical(0.0, 2.0, 0.0);
-	vec3 Origin(0.0, 0.0, 0.0);
-
+	//camera
+	camera cam;
+	const auto aspect_ratio = 16.0 / 9.0;
+	//image
+	int windowHeight;
+	int windowWidth;
+	if(width>height)
+	{
+		windowHeight = 1080 - 200;
+		windowWidth = static_cast<int>(static_cast<double>(windowHeight) * aspect_ratio);
+	}
+	else
+	{
+		windowWidth = 1920 - 200;
+		windowHeight = static_cast<int>(static_cast<double>(windowWidth) * aspect_ratio);
+	}
 	//world
 	hittable_list world;
 	world.add(make_shared<Sphere>(point3(0, 0, -1), 0.5));
@@ -46,23 +53,34 @@ int main()
 
 	Mat image(height, width, CV_8UC3, Scalar(50, 50, 50));
 	namedWindow("Rendering...", WINDOW_NORMAL);
-	resizeWindow("Rendering...", 1440, 750);
+	resizeWindow("Rendering...", windowWidth, windowHeight);
+
+	
 	for (int j = height - 1; j >= 0; j--)
 	{
 		for (int i = 0; i < width; i++)
 		{
-			float U = static_cast<float>(i) / static_cast<float>(width);
-			float V = static_cast<float>(j) / static_cast<float>(height);
+			color pixel_color(0, 0, 0);
+			for (int x = 0; x < samples_perpixel; ++x)
+			{
+				float U = static_cast<float>(i + random_double()) / static_cast<float>(width);
+				float V = static_cast<float>(j + random_double()) / static_cast<float>(height);
 
-			ray r(Origin, LowerLeftCorner + U * Horizontal + V * Vertical);
-			vec3 color = ray_color(r, world);
+				ray r = cam.get_ray(U, V);
+				pixel_color += ray_color(r, world, max_depth);
+			}
+			pixel_color /= samples_perpixel;
 
-			color *= 255.999;
+			//gamma½ÃÕý
+			pixel_color.e[0] = clamp(0.999,0.0,sqrt(pixel_color.e[0]));
+			pixel_color.e[1] = clamp(0.999, 0.0, sqrt(pixel_color.e[1]));
+			pixel_color.e[2] = clamp(0.999, 0.0, sqrt(pixel_color.e[2]));
+			//[0,1]Ó³Éäµ½[0,255]
+			pixel_color *= 255.999;
 
-			image.at<cv::Vec3b>(height - 1 - j, i)[0] = static_cast<int>(color.e[2]);
-			image.at<cv::Vec3b>(height - j - 1, i)[1] = static_cast<int>(color.e[1]);
-			image.at<cv::Vec3b>(height - j - 1, i)[2] = static_cast<int>(color.e[0]);
-
+			image.at<cv::Vec3b>(height - 1 - j, i)[0] = static_cast<int>(pixel_color.e[2]);
+			image.at<cv::Vec3b>(height - j - 1, i)[1] = static_cast<int>(pixel_color.e[1]);
+			image.at<cv::Vec3b>(height - j - 1, i)[2] = static_cast<int>(pixel_color.e[0]);
 
 		}
 		if (!(j % (height / 100)))
@@ -71,7 +89,7 @@ int main()
 			waitKey(1);
 		}
 	}
-	imwrite("image/normal.png", image);
+	imwrite("image/diffuse.png", image);
 	imshow("Rendering...", image);
 	waitKey(0);
 	destroyAllWindows();
