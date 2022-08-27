@@ -1,10 +1,12 @@
 #pragma once
 #include "ray.h"
+class material;
 
 struct hit_record
 {
 	vec3 pos; // 击中点
 	vec3 normal; // 击中点法线
+	shared_ptr<material> mat_ptr;
 	double t; // 距离
 	bool front_face;
 

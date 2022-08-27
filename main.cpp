@@ -3,13 +3,13 @@
 #include "camera.h"
 #include "geometry.h"
 #include "hittable_list.h"
-#include "ray.h"
+#include "material.h"
 #include "Sphere.h"
 
 using namespace cv;
 vec3 light_dir = normalize(vec3(-1, 1, 1));
 constexpr double aspect_ratio = 16.0 / 9.0;
-constexpr int width = 1440;
+constexpr int width = 1600;
 constexpr int height = static_cast<int>(width / aspect_ratio);
 constexpr int samples_perpixel = 100;
 constexpr int max_depth = 50;
@@ -17,11 +17,16 @@ constexpr int max_depth = 50;
 vec3 ray_color(const ray& r, hittable_list world, int depth)
 {
 	hit_record rec;
-	if (depth <= 0)return color(0, 0, 0);
-	if(world.hit(r, rec, Infinity, 0))
+	if (depth <= 0)return vec3(0, 0, 0);
+	if(world.hit(r, rec, Infinity, 0.000001))
 	{
-		point3 target = rec.pos + rec.normal + random_in_unit_sphere();
-		return 0.5 * ray_color(ray(rec.pos, target - rec.pos), world, --depth);
+		ray scattered;
+		color attenuation;
+		if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+		{
+			return attenuation * ray_color(scattered, world, depth - 1);
+		}
+		return vec3(0, 0, 0);
 	}
 	const vec3 unit_dir = normalize(r.get_dir());
 	double t = 0.5 * (unit_dir.y() + 1.0);
@@ -32,7 +37,7 @@ int main()
 {
 	//camera
 	camera cam;
-	const auto aspect_ratio = 16.0 / 9.0;
+	constexpr auto aspect_ratio = 16.0 / 9.0;
 	//image
 	int windowHeight;
 	int windowWidth;
@@ -48,8 +53,15 @@ int main()
 	}
 	//world
 	hittable_list world;
-	world.add(make_shared<Sphere>(point3(0, 0, -1), 0.5));
-	world.add(make_shared<Sphere>(point3(0, -100.5, -1), 100));
+	auto material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
+	auto material_center = make_shared<lambertian>(color(0.1, 0.2, 0.5));
+	auto material_left = make_shared<dielectric>(1.5);
+	auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+
+	world.add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
+	world.add(make_shared<Sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
+	world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
+	world.add(make_shared<Sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
 
 	Mat image(height, width, CV_8UC3, Scalar(50, 50, 50));
 	namedWindow("Rendering...", WINDOW_NORMAL);

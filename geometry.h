@@ -95,6 +95,19 @@ inline vec3 normalize(const vec3& v) {
 	return v / v.length();
 }
 
+static vec3 reflect(const vec3& v, const vec3& n)
+{
+	return v - 2 * dot(v, n) * n;
+}
+
+static vec3 refract(const vec3& v, const vec3& n, double etai_over_etat)
+{
+	auto cos_theta = dot(-v, n);
+	vec3 r_out_perp = etai_over_etat * (v + cos_theta * n);
+	vec3 r_out_parallel = -sqrt(fabs(1.0 - r_out_perp.length_squared())) * n;
+	return r_out_perp + r_out_parallel;
+}
+
 constexpr double PI = 3.141592657;
 constexpr double Infinity = std::numeric_limits<double>::infinity();
 
@@ -123,13 +136,10 @@ static vec3 random(double min, double max)
 
 inline vec3 random_in_unit_sphere()
 {
-	while(true)
-	{
-		vec3 p = random(-1, 1);
-		if (p.length_squared() >= 1)
-			continue;
-		return p;
-	}
+	auto a = random_double(0, 2 * PI);
+	auto z = random_double(-1, 1);
+	auto r = sqrt(1 - z * z);
+	return vec3(r * cos(a), r * sin(a), z);
 }
 
 inline double clamp(double max, double min, double x)

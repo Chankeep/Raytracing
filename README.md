@@ -20,3 +20,6 @@
 4. 设置光线反射迭代深度限制，防止stack boom
 5. 使用gamma矫正获得准确的颜色强度
 * 渲染了十分钟的图像效果还是可以的
+### second update on 2022/8/28 0:37
+1. 增加material抽象类以及lambert、dielectric、metal材质
+* 渲染十五分钟，效果极佳

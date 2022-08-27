@@ -8,7 +8,10 @@ public:
 	hittable_list() = default;
 	hittable_list(const std::shared_ptr<hittable>& object) { add(object); }
 
-	void add(const std::shared_ptr<hittable>& object) { objects.push_back(object); }
+	void add(const std::shared_ptr<hittable>& object)
+	{
+		objects.push_back(object);
+	}
 
 	virtual bool hit(const ray& r, hit_record& rec, double t_max, double t_min)override;
 
