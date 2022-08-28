@@ -23,3 +23,7 @@
 ### second update on 2022/8/28 0:37
 1. 增加material抽象类以及lambert、dielectric、metal材质
 * 渲染十五分钟，效果极佳
+
+## update by chankkep on 2022/8/28
+1. 增加自定义相机类，image内图像可看
+2. 一个小时＋多线程渲染出最终图像，效果很佳

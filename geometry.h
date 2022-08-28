@@ -116,6 +116,7 @@ inline double degree2radian(const double degree)
 	return degree * PI / 180.0;
 }
 
+//返回一个随机double数
 inline double random_double()
 {
 	return rand() / (RAND_MAX + 1.0);
@@ -124,6 +125,8 @@ inline double random_double(double min, double max)
 {
 	return min + (max - min) * random_double();
 }
+
+//返回一个随机的vec3
 static vec3 random()
 {
 	return {random_double(), random_double(), random_double()};
@@ -134,12 +137,24 @@ static vec3 random(double min, double max)
 	return {random_double(min, max), random_double(min, max), random_double(min, max)};
 }
 
+//在单位球里面选一个随机vec3点
 inline vec3 random_in_unit_sphere()
 {
 	auto a = random_double(0, 2 * PI);
 	auto z = random_double(-1, 1);
 	auto r = sqrt(1 - z * z);
-	return vec3(r * cos(a), r * sin(a), z);
+	return {r * cos(a), r * sin(a), z};
+}
+
+//在单位圆盘里随机选一个点
+inline vec3 random_in_unit_disk()
+{
+	while (true) {
+		auto p = vec3(random_double(-1, 1), random_double(-1, 1), 0);
+		if (p.length_squared() >= 1)
+			continue;
+		return p;
+	}
 }
 
 inline double clamp(double max, double min, double x)
@@ -147,4 +162,11 @@ inline double clamp(double max, double min, double x)
 	if (x < min) x = min;
 	if (x > max) x = max;
 	return x;
+}
+
+inline double schlick(double cosine, double ref_idx)
+{
+	double R0 = (1 - ref_idx) / (1 + ref_idx);
+	R0 *= R0;
+	return R0 + (1 - R0) * pow((1 - cosine), 5);
 }

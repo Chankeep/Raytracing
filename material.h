@@ -48,6 +48,7 @@ class dielectric : public material
 public:
 	dielectric(double ri) : ref_idx(ri){}
 
+	
 	virtual bool scatter(const ray& r, const hit_record& rec, color& attenuation, ray& scattered) const override
 	{
 		attenuation = color(1.0, 1.0, 1.0);
@@ -56,6 +57,13 @@ public:
 		double cos_theta = fmin(dot(-unit_direction, rec.normal), 1.0);
 		double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
 		if(etai_over_etat * sin_theta > 1.0)
+		{
+			vec3 reflected = reflect(unit_direction, rec.normal);
+			scattered = ray(rec.pos, reflected);
+			return true;
+		}
+		double reflect_prob = schlick(cos_theta, etai_over_etat);
+		if(random_double() < reflect_prob)
 		{
 			vec3 reflected = reflect(unit_direction, rec.normal);
 			scattered = ray(rec.pos, reflected);
