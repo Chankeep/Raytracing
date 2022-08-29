@@ -12,15 +12,15 @@ using namespace std;
 using namespace cv;
 vec3 light_dir = normalize(vec3(-1, 1, 1));
 constexpr double aspect_ratio = 16.0 / 9.0;
-constexpr int width = 1280;
+constexpr int width = 1600;
 constexpr int height = static_cast<int>(width / aspect_ratio);
-constexpr int samples_perpixel = 200;
+constexpr int samples_perpixel = 500;
 constexpr int max_depth = 50;
 hittable_list world;
 //互斥锁
 mutex mut;
 //线程数量
-int nthread = 18;
+int nthread = 16;
 
 
 vec3 ray_color(const ray& r, hittable_list world, int depth)
@@ -189,7 +189,7 @@ int main()
 	// }
 
 	//创建多线程加速
-	thread ths[18];
+	thread ths[16];
 	for (int i = 0; i < nthread; i++)
 	{
 		//实例化线程，给予线程任务
