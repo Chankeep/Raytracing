@@ -5,15 +5,16 @@ class Sphere : public hittable
 {
 public:
 	Sphere() = default;
-	Sphere(const vec3& ct, double r, shared_ptr<material> m) : center(ct), radius(r), mat_ptr(m) {}
-	virtual bool hit(const ray& r, hit_record& rec, double t_max, double t_min) override;
+	Sphere(const vec3& ct, double r, shared_ptr<material> m) : center(ct), radius(r), mat_ptr(std::move(m)) {}
+	virtual bool hit(const ray& r, hit_record& rec, double t_max, double t_min) const override;
+	bool bounding_box(double time0, double time1, aabb& output_box) const override;
 
 	point3 center;
 	double radius;
 	shared_ptr<material> mat_ptr;
 };
 
-inline bool Sphere::hit(const ray& r, hit_record& rec, double t_max, double t_min)
+inline bool Sphere::hit(const ray& r, hit_record& rec, double t_max, double t_min) const
 {
 	const vec3 AC = r.get_origin() - center;
 	const double a = dot(r.get_dir(), r.get_dir());
@@ -45,4 +46,12 @@ inline bool Sphere::hit(const ray& r, hit_record& rec, double t_max, double t_mi
 		}
 	}
 	return false;
+}
+
+inline bool Sphere::bounding_box(double time0, double time1, aabb& output_box) const
+{
+	output_box = aabb(
+		center - vec3(radius, radius, radius),
+		center + vec3(radius, radius, radius));
+	return true;
 }

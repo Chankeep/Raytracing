@@ -152,6 +152,11 @@ inline vec3 random_in_unit_sphere()
 	return {r * cos(a), r * sin(a), z};
 }
 
+inline int random_int(int min = 0, int max = 100)
+{
+	return static_cast<int>(random_double(min, max+1));
+}
+
 //在单位圆盘里随机选一个点
 inline vec3 random_in_unit_disk()
 {

@@ -18,6 +18,9 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="BVH.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
@@ -42,6 +45,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="move_Sphere.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AABB.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BVH.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

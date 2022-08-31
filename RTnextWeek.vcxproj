@@ -132,9 +132,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BVH.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AABB.h" />
+    <ClInclude Include="BVH.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="geometry.h" />
     <ClInclude Include="hittable.h" />

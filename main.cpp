@@ -1,6 +1,8 @@
 #include <opencv2/opencv.hpp>
 #include <thread>
 #include <mutex>
+#include <time.h>
+#include <conio.h>
 // #include <iostream>
 #include "camera.h"
 #include "geometry.h"
@@ -8,33 +10,35 @@
 #include "material.h"
 #include "Sphere.h"
 #include "move_Sphere.h"
+#include "BVH.h"
 
 using namespace std;
 using namespace cv;
 vec3 light_dir = normalize(vec3(-1, 1, 1));
 constexpr double aspect_ratio = 16.0 / 9.0;
-constexpr int width = 400;
+constexpr int width = 1600;
 constexpr int height = static_cast<int>(width / aspect_ratio);
-constexpr int samples_perpixel = 50;
-constexpr int max_depth = 50;
+constexpr int samples_perpixel = 500;
+constexpr int max_depth = 100;
 hittable_list world;
+
 //互斥锁
 mutex mut;
 //线程数量
 int nthread = 16;
 
 
-vec3 ray_color(const ray& r, hittable_list world, int depth)
+vec3 ray_color(const ray& r, BVH_node& BVH, int depth)
 {
 	hit_record rec;
 	if (depth <= 0)return vec3(0, 0, 0);
-	if(world.hit(r, rec, Infinity, 0.00000001))
+	if(BVH.hit(r, rec, Infinity, 0.00000001))
 	{
 		ray scattered;
 		color attenuation;
 		if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
 		{
-			return attenuation * ray_color(scattered, world, depth - 1);
+			return attenuation * ray_color(scattered, BVH, depth - 1);
 		}
 		return vec3(0, 0, 0);
 	}
@@ -95,7 +99,7 @@ void random_scene()
 	
 }
 
-void multithread(Mat& image, int thread_index, const camera& cam)
+void multithread(Mat& image, int thread_index, const camera& cam, BVH_node& BVH)
 {
 	const int perThread_height = height / nthread;
 	for (int j = thread_index * perThread_height; j < perThread_height * (thread_index + 1); j++)
@@ -109,7 +113,7 @@ void multithread(Mat& image, int thread_index, const camera& cam)
 				float V = static_cast<float>(j + random_double()) / static_cast<float>(height);
 
 				ray r = cam.get_ray(U, V);
-				pixel_color += ray_color(r, world, max_depth);
+				pixel_color += ray_color(r, BVH, max_depth);
 			}
 			pixel_color /= samples_perpixel;
 			lock_guard<mutex>locker(mut);
@@ -129,7 +133,7 @@ void multithread(Mat& image, int thread_index, const camera& cam)
 
 int main()
 {
-	
+	int beg_sec = time((time_t*)NULL);
 	constexpr auto aspect_ratio = 16.0 / 9.0;
 	//image
 	int windowHeight;
@@ -154,6 +158,7 @@ int main()
 	
 	//world
 	random_scene();
+	BVH_node BVH(world, 0, 1);
 	//这里R等于cos45°是因为相机是看不到球的正上方的。渲染出来的图像也不是球的最上方
 	// auto R = sin(PI / 4);
 	// auto material_left = make_shared<lambertian>(color(0, 0, 1));
@@ -168,7 +173,7 @@ int main()
 	resizeWindow("Rendering...", windowWidth, windowHeight);
 
 	
-	// for (int j = 0; j < height; j++)
+	// for (int j = height - 1; j >= 0; j--)
 	// {
 	// 	for (int i = 0; i < width; i++)
 	// 	{
@@ -179,10 +184,19 @@ int main()
 	// 			float V = static_cast<float>(j + random_double()) / static_cast<float>(height);
 	//
 	// 			ray r = cam.get_ray(U, V);
-	// 			pixel_color += ray_color(r, world, max_depth);
+	// 			pixel_color += ray_color(r, BVH, max_depth);
 	// 		}
 	// 		pixel_color /= samples_perpixel;
-	// 		write_color(image, pixel_color, i, j);
+	// 		//gamma矫正
+	// 		pixel_color.e[0] = clamp(0.999, 0.0, sqrt(pixel_color.e[0]));
+	// 		pixel_color.e[1] = clamp(0.999, 0.0, sqrt(pixel_color.e[1]));
+	// 		pixel_color.e[2] = clamp(0.999, 0.0, sqrt(pixel_color.e[2]));
+	// 		//[0,1]映射到[0,255]
+	// 		pixel_color *= 255.999;
+	//
+	// 		image.at<cv::Vec3b>(height - 1 - j, i)[0] = static_cast<int>(pixel_color.e[2]);
+	// 		image.at<cv::Vec3b>(height - j - 1, i)[1] = static_cast<int>(pixel_color.e[1]);
+	// 		image.at<cv::Vec3b>(height - j - 1, i)[2] = static_cast<int>(pixel_color.e[0]);
 	// 	}
 	// 	if (!(j % (height / 100)))
 	// 	{
@@ -191,19 +205,22 @@ int main()
 	// 	}
 	// }
 
-	//创建多线程加速
-	thread ths[16];
-	for (int i = 0; i < nthread; i++)
-	{
-		//实例化线程，给予线程任务
-		ths[i] = thread(multithread, std::ref(image), i, std::ref(cam));
-	}
-	for (auto& th : ths)
-		//主线程main等待各个子进程
-		th.join();
-
-	cv::imwrite("image/motionBlur/motion Blur.png", image);
+	// 创建多线程加速
+	 thread ths[16];
+	 for (int i = 0; i < nthread; i++)
+	 {
+	 	//实例化线程，给予线程任务
+	 	ths[i] = thread(multithread, std::ref(image), i, std::ref(cam), std::ref(BVH));
+	 }
+	 for (auto& th : ths)
+	 	//主线程main等待各个子进程
+	 	th.join();
+	std::cerr << "\nDone.\n";
+	int end_sec = time((time_t*)nullptr);
+	int run_time = end_sec - beg_sec;
+	std::cerr << run_time << std::endl;
 	cv::imshow("Rendering...", image);
+	cv::imwrite("image/motionBlur/motion Blur.png", image);
 	cv::waitKey(0);
 	cv::destroyAllWindows();
 	return 0;
