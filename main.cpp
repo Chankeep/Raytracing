@@ -59,7 +59,7 @@ void random_scene()
 		{
 			auto choose_mat = random_double();
 			point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
-
+	
 			if((center - point3(4,0.2,0)).length() > 0.9)
 			{
 				shared_ptr<material> sphere_material;
@@ -68,24 +68,25 @@ void random_scene()
 					//diffuse
 					auto albedo = random() * random();
 					sphere_material = make_shared<lambertian>(albedo);
-					auto center2 = center + vec3(0, random_double(0, 0.5), 0);
+					point3 center1(a + random_double(), 0.2, b + random_double() * 1.5);
+					auto center2 = center1 + vec3(0, random_double(0, 0.5), 0);
 					world.add(make_shared<Sphere>(center, 0.2, sphere_material));
-					world.add(make_shared<move_Sphere>(center, center2, 0.0, 1.0, 0.2, sphere_material));
+					world.add(make_shared<move_Sphere>(center1, center2, 0.0, 1.0, 0.2, sphere_material));
 				}
 
-				// else if (choose_mat < 0.95)
-				// {
-				// 	//metal
-				// 	auto albedo = random(0.5, 1);
-				// 	auto fuzz = random_double(0, 0.5);
-				// 	sphere_material = make_shared<metal>(albedo, fuzz);
-				// 	world.add(make_shared<Sphere>(center, 0.2, sphere_material));
-				// }
-				// else
-				// {
-				// 	sphere_material = make_shared<dielectric>(1.5);
-				// 	world.add(make_shared<Sphere>(center, 0.2, sphere_material));
-				// }
+				else if (choose_mat < 0.95)
+				{
+					//metal
+					auto albedo = random(0.5, 1);
+					auto fuzz = random_double(0, 0.5);
+					sphere_material = make_shared<metal>(albedo, fuzz);
+					world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+				else
+				{
+					sphere_material = make_shared<dielectric>(1.5);
+					world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+				}
 			}
 		}
 	auto material1 = make_shared<dielectric>(1.5);
@@ -218,7 +219,7 @@ int main()
 	std::cerr << "\nDone.\n";
 	int end_sec = time((time_t*)nullptr);
 	int run_time = end_sec - beg_sec;
-	std::cerr << run_time << std::endl;
+	std::cerr << run_time << "s" << std::endl;
 	cv::imshow("Rendering...", image);
 	cv::imwrite("image/motionBlur/motion Blur.png", image);
 	cv::waitKey(0);
