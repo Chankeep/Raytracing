@@ -16,10 +16,10 @@ using namespace std;
 using namespace cv;
 vec3 light_dir = normalize(vec3(-1, 1, 1));
 constexpr double aspect_ratio = 16.0 / 9.0;
-constexpr int width = 1600;
+constexpr int width = 1800;
 constexpr int height = static_cast<int>(width / aspect_ratio);
 constexpr int samples_perpixel = 500;
-constexpr int max_depth = 100;
+constexpr int max_depth = 50;
 hittable_list world;
 
 //互斥锁
@@ -50,53 +50,55 @@ vec3 ray_color(const ray& r, BVH_node& BVH, int depth)
 void random_scene()
 {
 	//地面材质
-	auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
+	auto checker_mat = make_shared<checker_texture>(color(1.0, 1.0, 1.0), color(0, 0, 0));
+	world.add(make_shared<Sphere>(point3(0, -100.5f, -1), 100, make_shared<lambertian>(checker_mat)));
+	// auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
 	//地面实例
-	world.add(make_shared<Sphere>(point3(0, -1000, 0), 1000, ground_material));
+	// world.add(make_shared<Sphere>(point3(0, -1000, 0), 1000, ground_material));
 
 	for (int a = -10; a < 10; a++)
 		for (int b = -10; b < 10; b++)
 		{
 			auto choose_mat = random_double();
 			point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
-	
+	//
 			if((center - point3(4,0.2,0)).length() > 0.9)
 			{
 				shared_ptr<material> sphere_material;
-				if (choose_mat < 0.8)
-				{
-					//diffuse
-					auto albedo = random() * random();
-					sphere_material = make_shared<lambertian>(albedo);
-					point3 center1(a + random_double(), 0.2, b + random_double() * 1.5);
-					auto center2 = center1 + vec3(0, random_double(0, 0.5), 0);
-					world.add(make_shared<Sphere>(center, 0.2, sphere_material));
-					world.add(make_shared<move_Sphere>(center1, center2, 0.0, 1.0, 0.2, sphere_material));
-				}
-
-				else if (choose_mat < 0.95)
+	// 			if (choose_mat < 0.8)
+	// 			{
+	// 				//diffuse
+	// 				auto albedo = random() * random();
+	// 				sphere_material = make_shared<lambertian>(albedo);
+	// 				point3 center1(a + random_double(), 0.2, b + random_double() * 1.5);
+	// 				auto center2 = center1 + vec3(0, random_double(0, 0.5), 0);
+	// 				world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+	// 				world.add(make_shared<move_Sphere>(center1, center2, 0.0, 1.0, 0.2, sphere_material));
+	// 			}
+	//
+				if (choose_mat > 0.8)
 				{
 					//metal
 					auto albedo = random(0.5, 1);
-					auto fuzz = random_double(0, 0.5);
+					auto fuzz = random_double(0, 0.3);
 					sphere_material = make_shared<metal>(albedo, fuzz);
 					world.add(make_shared<Sphere>(center, 0.2, sphere_material));
 				}
-				else
-				{
-					sphere_material = make_shared<dielectric>(1.5);
-					world.add(make_shared<Sphere>(center, 0.2, sphere_material));
-				}
+	// 			else
+	// 			{
+	// 				sphere_material = make_shared<dielectric>(1.5);
+	// 				world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+	// 			}
 			}
 		}
-	auto material1 = make_shared<dielectric>(1.5);
-	world.add(make_shared<Sphere>(point3(0, 1, 0), 1.0, material1));
-
-	auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
-	world.add(make_shared<Sphere>(point3(-4, 1, 0), 1.0, material2));
+	// auto material1 = make_shared<dielectric>(1.5);
+	// world.add(make_shared<Sphere>(point3(0, 1, 0), 1.0, material1));
+	//
+	// auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
+	// world.add(make_shared<Sphere>(point3(-4, 1, 0), 1.0, material2));
 
 	auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
-	world.add(make_shared<Sphere>(point3(4, 1, 0), 1.0, material3));
+	world.add(make_shared<Sphere>(point3(0, 0, -1), 0.5, material3));
 	
 }
 
@@ -150,11 +152,11 @@ int main()
 		windowHeight = static_cast<int>(static_cast<double>(windowWidth) * aspect_ratio);
 	}
 	//camera
-	point3 lookfrom(12, 2, 3);
+	point3 lookfrom(0, 1, 5);
 	point3 lookat(0, 0, 0);
 	vec3 vup(0, 1, 0);
-	auto focal_length = 10.0;
-	auto aperture = 0.1;
+	auto focal_length = 3.0;
+	auto aperture = 0;
 	camera cam(lookfrom, lookat, 20, aspect_ratio, aperture, focal_length, 0.0, 1.0);
 	
 	//world

@@ -9,6 +9,9 @@ struct hit_record
 	vec3 normal; // 击中点法线
 	shared_ptr<material> mat_ptr;
 	double t; // 距离
+	//texture coordinates
+	double u;
+	double v;
 	bool front_face;
 
 	inline void set_face_normal(const ray& r, const vec3& outward_normal)

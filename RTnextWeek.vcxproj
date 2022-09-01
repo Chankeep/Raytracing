@@ -146,6 +146,7 @@
     <ClInclude Include="move_Sphere.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="Sphere.h" />
+    <ClInclude Include="texture.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
