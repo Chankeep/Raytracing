@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "geometry.h"
+#include "perlin.h"
 
 class texture {
 public:
@@ -46,4 +47,18 @@ public:
 public:
     shared_ptr<texture> odd;
     shared_ptr<texture> even;
+};
+
+class noise_texture : public texture {
+public:
+    noise_texture() = default;
+    noise_texture(double scale) : _scale(scale){}
+
+    color value(const point3& p ,double u, double v) const override {
+        return color(1, 1, 1) * 0.5 * (1 + sin(_scale * p.z() + 10 *noise.turb(p)));
+    }
+
+public:
+    perlin noise;
+    double _scale;
 };

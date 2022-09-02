@@ -33,33 +33,24 @@ inline bool Sphere::hit(const ray& r, hit_record& rec, double t_max, double t_mi
 	const double half_b = dot(r.get_dir(), AC);
 	const double c = dot(AC, AC) - radius * radius;
 	const double discriminant = half_b * half_b - a * c;
-	if (discriminant > 0)
-	{
-		const double root = sqrt(discriminant);
-		double t = (-half_b - root) / a;
-		if (t > t_min && t < t_max)
-		{
-			rec.pos = r.at(t);
-			rec.t = t;
-			const vec3 outward_normal = (rec.pos - center) / radius;
-			rec.set_face_normal(r, outward_normal);
-			get_sphere_uv(outward_normal, rec.u, rec.v);
-			rec.mat_ptr = mat_ptr;
-			return true;
-		}
-		t = (-half_b + root) / a;
-		if (t > t_min && t < t_max)
-		{
-			rec.pos = r.at(t);
-			rec.t = t;
-			const vec3 outward_normal = (rec.pos - center) / radius;
-			rec.set_face_normal(r,outward_normal);
-			get_sphere_uv(outward_normal, rec.u, rec.v);
-			rec.mat_ptr = mat_ptr;
-			return true;
-		}
+	if (discriminant < 0) return false;
+	auto sqrtd = sqrt(discriminant);
+
+	// Find the nearest root that lies in the acceptable range.
+	auto root = (-half_b - sqrtd) / a;
+	if (root < t_min || t_max < root) {
+		root = (-half_b + sqrtd) / a;
+		if (root < t_min || t_max < root)
+			return false;
 	}
-	return false;
+
+	rec.t = root;
+	rec.pos = r.at(rec.t);
+	auto outward_normal = (rec.pos - center) / radius;
+	rec.set_face_normal(r, outward_normal);
+	get_sphere_uv(outward_normal, rec.u, rec.v);
+	rec.mat_ptr = mat_ptr;
+	return true;
 }
 
 inline bool Sphere::bounding_box(double time0, double time1, aabb& output_box) const

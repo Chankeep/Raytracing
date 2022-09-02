@@ -1,9 +1,8 @@
 #include <opencv2/opencv.hpp>
 #include <thread>
 #include <mutex>
-#include <time.h>
+#include <ctime>
 #include <conio.h>
-// #include <iostream>
 #include "camera.h"
 #include "geometry.h"
 #include "hittable_list.h"
@@ -16,9 +15,9 @@ using namespace std;
 using namespace cv;
 vec3 light_dir = normalize(vec3(-1, 1, 1));
 constexpr double aspect_ratio = 16.0 / 9.0;
-constexpr int width = 1800;
+constexpr int width = 1000;
 constexpr int height = static_cast<int>(width / aspect_ratio);
-constexpr int samples_perpixel = 500;
+constexpr int samples_perpixel = 200;
 constexpr int max_depth = 50;
 hittable_list world;
 
@@ -32,7 +31,7 @@ vec3 ray_color(const ray& r, BVH_node& BVH, int depth)
 {
 	hit_record rec;
 	if (depth <= 0)return vec3(0, 0, 0);
-	if(BVH.hit(r, rec, Infinity, 0.00000001))
+	if(BVH.hit(r, rec, Infinity, 0.00001))
 	{
 		ray scattered;
 		color attenuation;
@@ -47,7 +46,7 @@ vec3 ray_color(const ray& r, BVH_node& BVH, int depth)
 	return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
 }
 
-void random_scene()
+void checker_scene()
 {
 	//地面材质
 	auto checker_mat = make_shared<checker_texture>(color(1.0, 1.0, 1.0), color(0, 0, 0));
@@ -102,6 +101,58 @@ void random_scene()
 	
 }
 
+void random_scene() {
+	auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
+	world.add(make_shared<Sphere>(point3(0, -1000, 0), 1000, ground_material));
+
+	for (int a = -11; a < 11; a++) {
+		for (int b = -11; b < 11; b++) {
+			auto choose_mat = random_double();
+			point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
+
+			if ((center - point3(4, 0.2, 0)).length() > 0.9) {
+				shared_ptr<material> sphere_material;
+
+				if (choose_mat < 0.8) {
+					// diffuse
+					auto albedo = random() * random();
+					sphere_material = make_shared<lambertian>(albedo);
+					world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+				else if (choose_mat < 0.95) {
+					// metal
+					auto albedo = random(0.5, 1);
+					auto fuzz = random_double(0, 0.5);
+					sphere_material = make_shared<metal>(albedo, fuzz);
+					world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+				else {
+					// glass
+					sphere_material = make_shared<dielectric>(1.5);
+					world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+			}
+		}
+	}
+
+	auto material1 = make_shared<dielectric>(1.5);
+	world.add(make_shared<Sphere>(point3(0, 1, 0), 1.0, material1));
+
+	auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
+	world.add(make_shared<Sphere>(point3(-4, 1, 0), 1.0, material2));
+
+	auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
+	world.add(make_shared<Sphere>(point3(4, 1, 0), 1.0, material3));
+	
+}
+
+void two_perlin_spheres() {
+
+	auto pertext = make_shared<noise_texture>(4);
+	world.add(make_shared<Sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
+	world.add(make_shared<Sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
+}
+
 void multithread(Mat& image, int thread_index, const camera& cam, BVH_node& BVH)
 {
 	const int perThread_height = height / nthread;
@@ -151,24 +202,36 @@ int main()
 		windowWidth = 1920 - 200;
 		windowHeight = static_cast<int>(static_cast<double>(windowWidth) * aspect_ratio);
 	}
-	//camera
-	point3 lookfrom(0, 1, 5);
-	point3 lookat(0, 0, 0);
-	vec3 vup(0, 1, 0);
-	auto focal_length = 3.0;
-	auto aperture = 0;
+
+	point3 lookfrom;
+	point3 lookat;
+	auto vfov = 40.0;
+	auto aperture = 0.0;
+	constexpr auto focal_length = 10.0;
+	switch (0) {
+	case 1:
+		// random_scene();
+		lookfrom = point3(13, 2, 3);
+		lookat = point3(0, 0, 0);
+		vfov = 20.0;
+		aperture = 0.1;
+		break;
+	case 2:
+		// checker_scene();
+		lookfrom = point3(13, 2, 3);
+		lookat = point3(0, 0, 0);
+		vfov = 20.0;
+		break;
+	default:
+	case 3:
+		two_perlin_spheres();
+		lookfrom = point3(13, 2, 3);
+		lookat = point3(0, 0, 0);
+		vfov = 20.0;
+		break;
+	}
 	camera cam(lookfrom, lookat, 20, aspect_ratio, aperture, focal_length, 0.0, 1.0);
-	
-	//world
-	random_scene();
 	BVH_node BVH(world, 0, 1);
-	//这里R等于cos45°是因为相机是看不到球的正上方的。渲染出来的图像也不是球的最上方
-	// auto R = sin(PI / 4);
-	// auto material_left = make_shared<lambertian>(color(0, 0, 1));
-	// auto material_right = make_shared<lambertian>(color(1, 0, 0));
-	//
-	// world.add(make_shared<Sphere>(point3(-R, 0, -1), R, material_left));
-	// world.add(make_shared<Sphere>(point3(R, 0, -1), R, material_right));
 
 
 	cv::Mat image(height, width, CV_8UC3, Scalar(50, 50, 50));
@@ -208,6 +271,7 @@ int main()
 	// 	}
 	// }
 
+
 	// 创建多线程加速
 	 thread ths[16];
 	 for (int i = 0; i < nthread; i++)
@@ -218,13 +282,18 @@ int main()
 	 for (auto& th : ths)
 	 	//主线程main等待各个子进程
 	 	th.join();
+
+
 	std::cerr << "\nDone.\n";
 	int end_sec = time((time_t*)nullptr);
 	int run_time = end_sec - beg_sec;
 	std::cerr << run_time << "s" << std::endl;
+
+
 	cv::imshow("Rendering...", image);
-	cv::imwrite("image/motionBlur/motion Blur.png", image);
+	cv::imwrite("image/perlin noise.png", image);
 	cv::waitKey(0);
 	cv::destroyAllWindows();
+
 	return 0;
 }

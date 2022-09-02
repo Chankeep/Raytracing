@@ -29,7 +29,7 @@ public:
 			scatter_direction = rec.normal;
 
 		scattered = ray(rec.pos, scatter_direction, r.get_time());
-		attenuation = albedo->value(rec.normal, rec.u, rec.v);
+		attenuation = albedo->value(rec.pos, rec.u, rec.v);
 		return true;
 	}
 	shared_ptr<texture> albedo;
