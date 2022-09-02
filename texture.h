@@ -4,12 +4,13 @@
 #include "rtw_stb_image.h"
 #include "geometry.h"
 #include "perlin.h"
-
+//texture抽象基类
 class texture {
 public:
     virtual color value(const vec3& p, double u, double v) const = 0;
 };
 
+//纯色texture
 class solid_color : public texture {
 public:
     solid_color() = default;
@@ -25,7 +26,7 @@ public:
 private:
     color color_value;
 };
-
+//象棋盘贴图
 class checker_texture : public texture {
 public:
     checker_texture() = default;
@@ -48,7 +49,7 @@ public:
     shared_ptr<texture> odd;
     shared_ptr<texture> even;
 };
-
+//噪声贴图
 class noise_texture : public texture {
 public:
     noise_texture() = default;
@@ -62,7 +63,7 @@ public:
     perlin noise;
     double _scale;
 };
-
+//把图片当作texture
 class image_texture : public texture
 {
 public:
@@ -113,3 +114,4 @@ private:
     int width, height;
     int bytes_per_scanline;
 };
+

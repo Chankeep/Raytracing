@@ -6,7 +6,7 @@ class Sphere : public hittable
 public:
 	Sphere() = default;
 	Sphere(const vec3& ct, double r, shared_ptr<material> m) : center(ct), radius(r), mat_ptr(std::move(m)) {}
-	virtual bool hit(const ray& r, hit_record& rec, double t_max, double t_min) const override;
+	bool hit(const ray& r, hit_record& rec, double t_max, double t_min) const override;
 	bool bounding_box(double time0, double time1, aabb& output_box) const override;
 
 	point3 center;

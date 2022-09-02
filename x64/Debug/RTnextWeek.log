@@ -1,4 +1,4 @@
 ﻿  main.cpp
-D:\CODE\Raytracing\RTnextWeek\RTnextWeek\main.cpp(198,14): warning C4244: “初始化”: 从“time_t”转换到“int”，可能丢失数据
-D:\CODE\Raytracing\RTnextWeek\RTnextWeek\main.cpp(302,14): warning C4244: “初始化”: 从“time_t”转换到“int”，可能丢失数据
+D:\CODE\Raytracing\RTnextWeek\RTnextWeek\main.cpp(228,14): warning C4244: “初始化”: 从“time_t”转换到“int”，可能丢失数据
+D:\CODE\Raytracing\RTnextWeek\RTnextWeek\main.cpp(354,14): warning C4244: “初始化”: 从“time_t”转换到“int”，可能丢失数据
   RTnextWeek.vcxproj -> D:\CODE\Raytracing\RTnextWeek\x64\Debug\RTnextWeek.exe

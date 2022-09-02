@@ -18,3 +18,6 @@
 2. 增加柏林噪声贴图
 ### second update
 * 增加image texture
+## update by chankkep on 2022/9/3 2:26
+1. 增加rectangle，只是矩形而已
+2. 渲染Cornell box

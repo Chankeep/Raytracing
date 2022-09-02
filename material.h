@@ -7,20 +7,25 @@
 
 struct hit_record;
 
+//材质抽象类
 class material
 {
 public:
+	virtual color emitted(const point3& p, double u, double v) const
+	{
+		return color(0, 0, 0);
+	}
 	virtual bool scatter(const ray& r, const hit_record& rec, color& attenuation, ray& scattered) const = 0;
 };
 
+//近似兰伯特材质
 class lambertian : public material
 {
 public:
 	explicit lambertian(const color& a) : albedo(make_shared<solid_color>(a)) {}
 	explicit lambertian(const shared_ptr<texture>& a) : albedo(a) {}
 
-
-	virtual bool scatter(const ray& r, const hit_record& rec, color& attenuation, ray& scattered) const override
+	bool scatter(const ray& r, const hit_record& rec, color& attenuation, ray& scattered) const override
 	{
 		vec3 scatter_direction = rec.normal + random_in_unit_sphere();
 
@@ -35,6 +40,7 @@ public:
 	shared_ptr<texture> albedo;
 };
 
+//金属材质
 class metal : public material
 {
 public:
@@ -51,13 +57,14 @@ public:
 	color albedo;
 };
 
+//电解质材质：玻璃等折射物体
 class dielectric : public material
 {
 public:
 	dielectric(double ri) : ref_idx(ri){}
 
 	
-	virtual bool scatter(const ray& r, const hit_record& rec, color& attenuation, ray& scattered) const override
+	bool scatter(const ray& r, const hit_record& rec, color& attenuation, ray& scattered) const override
 	{
 		attenuation = color(1.0, 1.0, 1.0);
 		double etai_over_etat = rec.front_face ? (1.0 / ref_idx) : ref_idx;
@@ -82,4 +89,24 @@ public:
 		return true;
 	}
 	double ref_idx;
+};
+
+//光源材质
+class diffuse_light : public material
+{
+public:
+	diffuse_light(std::shared_ptr<texture> a) : emission(a) {}
+	diffuse_light(color c) : emission(make_shared<solid_color>(c)) {}
+
+	bool scatter(const ray& r, const hit_record& rec, color& attenuation, ray& scattered) const override
+	{
+		return false;
+	}
+
+	color emitted(const point3& p, double u, double v) const override
+	{
+		return emission->value(p, u, v);
+	}
+
+	std::shared_ptr<texture> emission;
 };

@@ -3,6 +3,8 @@
 #include <mutex>
 #include <ctime>
 #include <conio.h>
+
+#include "aarect.h"
 #include "camera.h"
 #include "geometry.h"
 #include "hittable_list.h"
@@ -14,36 +16,39 @@
 using namespace std;
 using namespace cv;
 vec3 light_dir = normalize(vec3(-1, 1, 1));
-constexpr double aspect_ratio = 16.0 / 9.0;
-constexpr int width = 1600;
-constexpr int height = static_cast<int>(width / aspect_ratio);
-constexpr int samples_perpixel = 500;
-constexpr int max_depth = 50;
+int width = 800;
+int height = 1000;
+int samples_perpixel = 10;
+int max_depth = 50;
 hittable_list world;
+color background(0, 0, 0);
+
 
 //互斥锁
 mutex mut;
 //线程数量
 int nthread = 16;
 
-
-vec3 ray_color(const ray& r, BVH_node& BVH, int depth)
+vec3 ray_color(const ray& r, const color& background, BVH_node& BVH, int depth)
 {
 	hit_record rec;
-	if (depth <= 0)return vec3(0, 0, 0);
-	if(BVH.hit(r, rec, Infinity, 0.00001))
-	{
-		ray scattered;
-		color attenuation;
-		if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
-		{
-			return attenuation * ray_color(scattered, BVH, depth - 1);
-		}
-		return vec3(0, 0, 0);
-	}
-	const vec3 unit_dir = normalize(r.get_dir());
-	double t = 0.5 * (unit_dir.y() + 1.0);
-	return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
+
+	// If we've exceeded the ray bounce limit, no more light is gathered.
+	if (depth <= 0)
+		return color(0, 0, 0);
+
+	// If the ray hits nothing, return the background color.
+	if (!BVH.hit(r, rec, Infinity, 0.00001))
+		return background;
+
+	ray scattered;
+	color attenuation;
+	color emitted = rec.mat_ptr->emitted(rec.pos, rec.u, rec.v);
+
+	if (!rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+		return emitted;
+
+	return emitted + attenuation * ray_color(scattered, background, BVH, depth - 1);
 }
 
 void checker_scene()
@@ -161,6 +166,31 @@ void earth()
 	world.add(globe);
 }
 
+void simple_light() {
+
+	auto pertext = make_shared<noise_texture>(4);
+	world.add(make_shared<Sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
+	world.add(make_shared<Sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
+
+	auto difflight = make_shared<diffuse_light>(color(4, 4, 4));
+	world.add(make_shared<xy_rect>(3, 5, 1, 3, -2, difflight));
+	
+}
+
+void cornell_box() {
+	auto red = make_shared<lambertian>(color(.65, .05, .05));
+	auto white = make_shared<lambertian>(color(.73, .73, .73));
+	auto green = make_shared<lambertian>(color(.12, .45, .15));
+	auto light = make_shared<diffuse_light>(color(15, 15, 15));
+
+	world.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
+	world.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
+	world.add(make_shared<xz_rect>(213, 343, 227, 332, 554, light));
+	world.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
+	world.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
+	world.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
+}
+
 void multithread(Mat& image, int thread_index, const camera& cam, BVH_node& BVH)
 {
 	const int perThread_height = height / nthread;
@@ -175,10 +205,9 @@ void multithread(Mat& image, int thread_index, const camera& cam, BVH_node& BVH)
 				float V = static_cast<float>(j + random_double()) / static_cast<float>(height);
 
 				ray r = cam.get_ray(U, V);
-				pixel_color += ray_color(r, BVH, max_depth);
+				pixel_color += ray_color(r, background, BVH, max_depth);
 			}
 			pixel_color /= samples_perpixel;
-			lock_guard<mutex>locker(mut);
 			//gamma矫正
 			pixel_color.e[0] = clamp(0.999, 0.0, sqrt(pixel_color.e[0]));
 			pixel_color.e[1] = clamp(0.999, 0.0, sqrt(pixel_color.e[1]));
@@ -189,14 +218,15 @@ void multithread(Mat& image, int thread_index, const camera& cam, BVH_node& BVH)
 			image.at<cv::Vec3b>(height - 1 - j, i)[0] = static_cast<int>(pixel_color.e[2]);
 			image.at<cv::Vec3b>(height - j - 1, i)[1] = static_cast<int>(pixel_color.e[1]);
 			image.at<cv::Vec3b>(height - j - 1, i)[2] = static_cast<int>(pixel_color.e[0]);
+
 		}
 	}
 }
 
 int main()
 {
-	int beg_sec = time((time_t*)NULL);
-	constexpr auto aspect_ratio = 16.0 / 9.0;
+	int beg_sec = time((time_t*)nullptr);
+	auto aspect_ratio = 16.0 / 9.0;
 	//image
 	int windowHeight;
 	int windowWidth;
@@ -207,7 +237,7 @@ int main()
 	}
 	else
 	{
-		windowWidth = 1920 - 200;
+		windowWidth = 1080 - 200;
 		windowHeight = static_cast<int>(static_cast<double>(windowWidth) * aspect_ratio);
 	}
 
@@ -216,11 +246,13 @@ int main()
 	auto vfov = 40.0;
 	auto aperture = 0.0;
 	constexpr auto focal_length = 10.0;
+
 	switch (0) {
 	case 1:
 		// random_scene();
 		lookfrom = point3(13, 2, 3);
 		lookat = point3(0, 0, 0);
+		background = color(0.7, 0.8, 1.0);
 		vfov = 20.0;
 		aperture = 0.1;
 		break;
@@ -228,23 +260,43 @@ int main()
 		// checker_scene();
 		lookfrom = point3(13, 2, 3);
 		lookat = point3(0, 0, 0);
+		background = color(0.7, 0.8, 1.0);
 		vfov = 20.0;
 		break;
 	case 3:
 		two_perlin_spheres();
 		lookfrom = point3(13, 2, 3);
 		lookat = point3(0, 0, 0);
+		background = color(0.7, 0.8, 1.0);
 		vfov = 20.0;
 		break;
-	default:
 	case 4:
 		earth();
 		lookfrom = point3(13, 2, 3);
 		lookat = point3(0, 0, 0);
-		vfov = 30.0;
+		background = color(0.7, 0.8, 1.0);
+		vfov = 20.0;
+		break;
+	case 5:
+		simple_light();
+		samples_perpixel = 400;
+		background = color(0, 0, 0);
+		lookfrom = point3(26, 3, 6);
+		lookat = point3(0, 2, 0);
+		vfov = 20.0;
+		break;
+	default:
+	case 6:
+		cornell_box();
+		aspect_ratio = 1.0;
+		samples_perpixel = 800;
+		background = color(0, 0, 0);
+		lookfrom = point3(278, 278, -800);
+		lookat = point3(278, 278, 0);
+		vfov = 40.0;
 		break;
 	}
-	camera cam(lookfrom, lookat, 20, aspect_ratio, aperture, focal_length, 0.0, 1.0);
+	camera cam(lookfrom, lookat, vfov, aspect_ratio, aperture, focal_length, 0.0, 1.0);
 	BVH_node BVH(world, 0, 1);
 
 
@@ -301,11 +353,11 @@ int main()
 	std::cerr << "\nDone.\n";
 	int end_sec = time((time_t*)nullptr);
 	int run_time = end_sec - beg_sec;
-	std::cerr << run_time << "s" << std::endl;
+	std::cerr << "渲染用时:" << run_time << "s" << std::endl;
 
 
 	cv::imshow("Rendering...", image);
-	cv::imwrite("image/earth(image_texture).png", image);
+	cv::imwrite("image/Cornell Box.png", image);
 	cv::waitKey(0);
 	cv::destroyAllWindows();
 
