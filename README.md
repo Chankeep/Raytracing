@@ -16,3 +16,5 @@
 ## update by chankkep on 2022/9/2
 1. 增加texture抽象类和纯色texture
 2. 增加柏林噪声贴图
+### second update
+* 增加image texture
