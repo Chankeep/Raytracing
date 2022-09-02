@@ -15,9 +15,9 @@ using namespace std;
 using namespace cv;
 vec3 light_dir = normalize(vec3(-1, 1, 1));
 constexpr double aspect_ratio = 16.0 / 9.0;
-constexpr int width = 1000;
+constexpr int width = 1600;
 constexpr int height = static_cast<int>(width / aspect_ratio);
-constexpr int samples_perpixel = 200;
+constexpr int samples_perpixel = 500;
 constexpr int max_depth = 50;
 hittable_list world;
 
@@ -153,6 +153,14 @@ void two_perlin_spheres() {
 	world.add(make_shared<Sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
 }
 
+void earth()
+{
+	auto earth_texture = make_shared<image_texture>("image/earthmap.jpg");
+	auto earth_surface = make_shared<lambertian>(earth_texture);
+	auto globe = make_shared<Sphere>(point3(0, 0, 0), 2, earth_surface);
+	world.add(globe);
+}
+
 void multithread(Mat& image, int thread_index, const camera& cam, BVH_node& BVH)
 {
 	const int perThread_height = height / nthread;
@@ -222,12 +230,18 @@ int main()
 		lookat = point3(0, 0, 0);
 		vfov = 20.0;
 		break;
-	default:
 	case 3:
 		two_perlin_spheres();
 		lookfrom = point3(13, 2, 3);
 		lookat = point3(0, 0, 0);
 		vfov = 20.0;
+		break;
+	default:
+	case 4:
+		earth();
+		lookfrom = point3(13, 2, 3);
+		lookat = point3(0, 0, 0);
+		vfov = 30.0;
 		break;
 	}
 	camera cam(lookfrom, lookat, 20, aspect_ratio, aperture, focal_length, 0.0, 1.0);
@@ -291,7 +305,7 @@ int main()
 
 
 	cv::imshow("Rendering...", image);
-	cv::imwrite("image/perlin noise.png", image);
+	cv::imwrite("image/earth(image_texture).png", image);
 	cv::waitKey(0);
 	cv::destroyAllWindows();
 

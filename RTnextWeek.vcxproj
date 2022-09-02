@@ -139,6 +139,7 @@
     <ClInclude Include="AABB.h" />
     <ClInclude Include="BVH.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="external\stb_image.h" />
     <ClInclude Include="geometry.h" />
     <ClInclude Include="hittable.h" />
     <ClInclude Include="hittable_list.h" />
@@ -146,6 +147,7 @@
     <ClInclude Include="move_Sphere.h" />
     <ClInclude Include="perlin.h" />
     <ClInclude Include="ray.h" />
+    <ClInclude Include="rtw_stb_image.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="texture.h" />
   </ItemGroup>
