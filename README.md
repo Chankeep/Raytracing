@@ -21,3 +21,7 @@
 ## update by chankkep on 2022/9/3 2:26
 1. 增加rectangle，只是矩形而已
 2. 渲染Cornell box
+## update by chankkep on 2022/9/4 
+1. 添加box实例，由六个rectangle组成
+2. 添加translate、rotate_y
+3. 渲染Cornell box完整版（将近18个小时，效果还是很不错的）

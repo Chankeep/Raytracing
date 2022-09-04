@@ -1,22 +1,10 @@
-#include <opencv2/opencv.hpp>
-#include <thread>
-#include <mutex>
-#include <ctime>
-#include <conio.h>
 
-#include "aarect.h"
-#include "camera.h"
-#include "geometry.h"
-#include "hittable_list.h"
-#include "material.h"
-#include "Sphere.h"
-#include "move_Sphere.h"
-#include "BVH.h"
+#include "func.h"
 
 using namespace std;
 using namespace cv;
 vec3 light_dir = normalize(vec3(-1, 1, 1));
-int width = 800;
+int width = 1000;
 int height = 1000;
 int samples_perpixel = 10;
 int max_depth = 50;
@@ -183,6 +171,16 @@ void cornell_box() {
 	auto green = make_shared<lambertian>(color(.12, .45, .15));
 	auto light = make_shared<diffuse_light>(color(15, 15, 15));
 
+	shared_ptr<hittable>box1 = make_shared<box>(point3(0, 0, 0), point3(165, 330, 165), white);
+	box1 = make_shared<rotate_y>(box1, 15);
+	box1 = make_shared<translate>(box1, vec3(265, 0, 295));
+	world.add(box1);
+
+	shared_ptr<hittable>box2 = make_shared<box>(point3(0, 0, 0), point3(165, 165, 165), white);
+	box2 = make_shared<rotate_y>(box2, -18);
+	box2 = make_shared<translate>(box2, vec3(130, 0, 65));
+	world.add(box2);
+
 	world.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
 	world.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
 	world.add(make_shared<xz_rect>(213, 343, 227, 332, 554, light));
@@ -289,7 +287,7 @@ int main()
 	case 6:
 		cornell_box();
 		aspect_ratio = 1.0;
-		samples_perpixel = 800;
+		samples_perpixel = 10000;
 		background = color(0, 0, 0);
 		lookfrom = point3(278, 278, -800);
 		lookat = point3(278, 278, 0);

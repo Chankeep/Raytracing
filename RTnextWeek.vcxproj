@@ -132,6 +132,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="box.h" />
     <ClCompile Include="BVH.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -141,6 +142,7 @@
     <ClInclude Include="BVH.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="external\stb_image.h" />
+    <ClInclude Include="func.h" />
     <ClInclude Include="geometry.h" />
     <ClInclude Include="hittable.h" />
     <ClInclude Include="hittable_list.h" />
