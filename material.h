@@ -110,3 +110,21 @@ public:
 
 	std::shared_ptr<texture> emission;
 };
+
+//volume isotropic 各向同性体积材质
+class isotropic : public material
+{
+public:
+	isotropic(color c) : albedo(make_shared<solid_color>(c)) {}
+
+	isotropic(shared_ptr<texture> a) : albedo(std::move(a)) {}
+
+	bool scatter(const ray& r, const hit_record& rec, color& attenuation, ray& scattered) const override
+	{
+		scattered = ray(rec.pos, random_in_unit_sphere(), r.get_time());
+		attenuation = albedo->value(rec.pos, rec.u, rec.v);
+		return true;
+	}
+
+	shared_ptr<texture> albedo;
+};

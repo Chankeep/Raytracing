@@ -4,8 +4,8 @@
 using namespace std;
 using namespace cv;
 vec3 light_dir = normalize(vec3(-1, 1, 1));
-int width = 1000;
-int height = 1000;
+int width = 600;
+int height = 600;
 int samples_perpixel = 10;
 int max_depth = 50;
 hittable_list world;
@@ -15,7 +15,7 @@ color background(0, 0, 0);
 //互斥锁
 mutex mut;
 //线程数量
-int nthread = 16;
+constexpr  int nthread = 16;
 
 vec3 ray_color(const ray& r, const color& background, BVH_node& BVH, int depth)
 {
@@ -189,6 +189,32 @@ void cornell_box() {
 	world.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
 }
 
+void cornell_smoke() {
+
+	auto red = make_shared<lambertian>(color(.65, .05, .05));
+	auto white = make_shared<lambertian>(color(.73, .73, .73));
+	auto green = make_shared<lambertian>(color(.12, .45, .15));
+	auto light = make_shared<diffuse_light>(color(7, 7, 7));
+
+	world.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
+	world.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
+	world.add(make_shared<xz_rect>(113, 443, 127, 432, 554, light));
+	world.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
+	world.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
+	world.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
+
+	shared_ptr<hittable> box1 = make_shared<box>(point3(0, 0, 0), point3(165, 330, 165), white);
+	box1 = make_shared<rotate_y>(box1, 15);
+	box1 = make_shared<translate>(box1, vec3(265, 0, 295));
+
+	shared_ptr<hittable> box2 = make_shared<box>(point3(0, 0, 0), point3(165, 165, 165), white);
+	box2 = make_shared<rotate_y>(box2, -18);
+	box2 = make_shared<translate>(box2, vec3(130, 0, 65));
+
+	world.add(make_shared<constant_medium>(box1, 0.01, color(0, 0, 0)));
+	world.add(make_shared<constant_medium>(box2, 0.01, color(1, 1, 1)));
+}
+
 void multithread(Mat& image, int thread_index, const camera& cam, BVH_node& BVH)
 {
 	const int perThread_height = height / nthread;
@@ -283,12 +309,20 @@ int main()
 		lookat = point3(0, 2, 0);
 		vfov = 20.0;
 		break;
-	default:
 	case 6:
 		cornell_box();
 		aspect_ratio = 1.0;
 		samples_perpixel = 10000;
 		background = color(0, 0, 0);
+		lookfrom = point3(278, 278, -800);
+		lookat = point3(278, 278, 0);
+		vfov = 40.0;
+		break;
+	default:
+	case 7:
+		cornell_smoke();
+		aspect_ratio = 1.0;
+		samples_perpixel = 50;
 		lookfrom = point3(278, 278, -800);
 		lookat = point3(278, 278, 0);
 		vfov = 40.0;
@@ -337,7 +371,7 @@ int main()
 
 
 	// 创建多线程加速
-	 thread ths[16];
+	 thread ths[nthread];
 	 for (int i = 0; i < nthread; i++)
 	 {
 	 	//实例化线程，给予线程任务
@@ -355,7 +389,7 @@ int main()
 
 
 	cv::imshow("Rendering...", image);
-	cv::imwrite("image/Cornell Box.png", image);
+	cv::imwrite("image/volumn.png", image);
 	cv::waitKey(0);
 	cv::destroyAllWindows();
 

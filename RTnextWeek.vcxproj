@@ -141,6 +141,7 @@
     <ClInclude Include="aarect.h" />
     <ClInclude Include="BVH.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="constant_medium.h" />
     <ClInclude Include="external\stb_image.h" />
     <ClInclude Include="func.h" />
     <ClInclude Include="geometry.h" />

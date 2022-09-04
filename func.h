@@ -16,3 +16,4 @@
 #include "aarect.h"
 #include "move_Sphere.h"
 #include "box.h"
+#include "constant_medium.h"

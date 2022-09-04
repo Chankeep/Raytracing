@@ -25,3 +25,5 @@
 1. 添加box实例，由六个rectangle组成
 2. 添加translate、rotate_y
 3. 渲染Cornell box完整版（将近18个小时，效果还是很不错的）
+### second update
+* 添加均匀固定密度volumn渲染

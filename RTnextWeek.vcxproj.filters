@@ -74,6 +74,9 @@
     <ClInclude Include="func.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="constant_medium.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">

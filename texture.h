@@ -38,7 +38,7 @@ public:
         : odd(make_shared<solid_color>(c2)), even(make_shared<solid_color>(c1)) {}
 
     color value(const point3& p, double u, double v) const override {
-        auto sines = sin(1000 * p.x()) * sin(1000 * p.y()) * sin(1000 * p.z());
+        auto sines = sin(10 * p.x()) * sin(10 * p.y()) * sin(10 * p.z());
         if (sines < 0)
             return odd->value(p, u, v);
         else
