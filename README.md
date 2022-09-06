@@ -27,3 +27,5 @@
 3. 渲染Cornell box完整版（将近18个小时，效果还是很不错的）
 ### second update
 * 添加均匀固定密度volumn渲染
+## update by chankkep on 2022/9/6
+* 最后那幅图渲染了一天，还有bug，无所谓了
